@@ -1,5 +1,5 @@
 import { handleStatus } from "../utils/promise-help.js";
-import { partialize } from "../utils/operators.js";
+import { partialize, compose } from "../utils/operators.js";
 
 const API = "http://localhost:3000/notas";
 
@@ -11,12 +11,18 @@ const sumItemsValue = (items) =>
 
 export const notasService = {
   listAll() {
-    return fetch(API).then(handleStatus);
+    return fetch(API)
+      .then(handleStatus)
+      .catch((err) => {
+        console.log(err);
+        return Promise.reject("Não foi possivel obter as notas fiscais");
+      });
   },
 
   sumItems(code) {
     const filterItems = partialize(filterItemsByCode, code);
+    const sumItems = compose(sumItemsValue, filterItems, getItemsFromNotas);
 
-    return this.listAll().then(sumItems(code));
+    return this.listAll().then(sumItems);
   },
 };
